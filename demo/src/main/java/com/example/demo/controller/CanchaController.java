@@ -1,39 +1,40 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Cancha;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import com.example.demo.model.Cancha;
+import com.example.demo.repository.CanchaRepository;
 
 @RestController
 @RequestMapping("/canchas")
 public class CanchaController {
 
-    private final List<Cancha> canchas = new ArrayList<>();
-    private final AtomicLong counter = new AtomicLong();
+    private final CanchaRepository canchaRepository;
 
-    public CanchaController() {
-        canchas.add(new Cancha(counter.incrementAndGet(), "Cancha A", "Fútbol",      "Disponible",   12000));
-        canchas.add(new Cancha(counter.incrementAndGet(), "Cancha B", "Tenis",        "Disponible",    8000));
-        canchas.add(new Cancha(counter.incrementAndGet(), "Cancha C", "Básquetbol",  "Mantenimiento", 10000));
+    public CanchaController(CanchaRepository canchaRepository) {
+        this.canchaRepository = canchaRepository;
     }
 
     // GET /canchas
     @GetMapping
     public List<Cancha> getAllCanchas() {
-        return canchas;
+        return canchaRepository.findAll();
     }
 
     // GET /canchas/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Cancha> getCanchaById(@PathVariable Long id) {
-        return canchas.stream()
-                .filter(c -> c.getId().equals(id))
-                .findFirst()
+        return canchaRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -42,11 +43,9 @@ public class CanchaController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Cancha createCancha(@RequestBody Cancha cancha) {
-        cancha.setId(counter.incrementAndGet());
         if (cancha.getEstado() == null || cancha.getEstado().isBlank()) {
             cancha.setEstado("Disponible");
         }
-        canchas.add(cancha);
-        return cancha;
+        return canchaRepository.save(cancha);
     }
 }

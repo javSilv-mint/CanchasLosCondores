@@ -1,9 +1,6 @@
 package com.example.reservas.controller;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,32 +13,28 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.reservas.model.Reserva;
+import com.example.reservas.repository.ReservaRepository;
 
 @RestController
 @RequestMapping("/reservas")
 public class ReservaController {
 
-    private final List<Reserva> reservas = new ArrayList<>();
-    private final AtomicLong counter = new AtomicLong();
+    private final ReservaRepository reservaRepository;
 
-    public ReservaController() {
-        reservas.add(new Reserva(counter.incrementAndGet(), 1L, "Juan Pérez",   "2025-06-18", "09:00", "10:00"));
-        reservas.add(new Reserva(counter.incrementAndGet(), 2L, "María López",  "2025-06-19", "11:00", "12:00"));
-        reservas.add(new Reserva(counter.incrementAndGet(), 1L, "Carlos Ruiz",  "2025-06-20", "14:00", "15:00"));
+    public ReservaController(ReservaRepository reservaRepository) {
+        this.reservaRepository = reservaRepository;
     }
 
     // GET /reservas
     @GetMapping
     public List<Reserva> getAllReservas() {
-        return reservas;
+        return reservaRepository.findAll();
     }
 
     // GET /reservas/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Reserva> getReservaById(@PathVariable Long id) {
-        return reservas.stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
+        return reservaRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -49,17 +42,13 @@ public class ReservaController {
     // GET /reservas/cancha/{canchaId}  — filtrar por cancha
     @GetMapping("/cancha/{canchaId}")
     public List<Reserva> getReservasByCanchaId(@PathVariable Long canchaId) {
-        return reservas.stream()
-                .filter(r -> r.getCanchaId().equals(canchaId))
-                .collect(Collectors.toList());
+        return reservaRepository.findByCanchaId(canchaId);
     }
 
     // POST /reservas
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Reserva createReserva(@RequestBody Reserva reserva) {
-        reserva.setId(counter.incrementAndGet());
-        reservas.add(reserva);
-        return reserva;
+        return reservaRepository.save(reserva);
     }
 }
