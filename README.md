@@ -21,7 +21,7 @@ Sistema de gestión de canchas y reservas basado en arquitectura de microservici
 ## Estructura del Proyecto
 
 ```
-fullstack3/
+CanchasLosCondores/
 ├── demo/           # Microservicio Canchas (8081)
 │   └── src/main/java/com/example/demo/
 │       ├── model/Cancha.java
@@ -35,13 +35,13 @@ fullstack3/
 
 ## Cómo Ejecutar
 
-> **Importante:** Todos los comandos asumen que estás dentro de la carpeta `fullstack3/`
+> **Importante:** Todos los comandos asumen que estás dentro de la carpeta `CanchasLosCondores/`
 
 ### 1. Microservicio Canchas (Terminal 1)
 
 Abrir PowerShell y ejecutar:
 ```powershell
-cd "C:\Users\Remmy\Desktop\Duoc uc\5to semestre\fullstack3\demo"
+cd "C:\Users\Remmy\Desktop\CanchasLosCondores\demo"
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -51,7 +51,7 @@ El servicio estará disponible en: `http://localhost:8081`
 
 Abrir **otra** ventana de PowerShell y ejecutar:
 ```powershell
-cd "C:\Users\Remmy\Desktop\Duoc uc\5to semestre\fullstack3\reservas"
+cd "C:\Users\Remmy\Desktop\CanchasLosCondores\reservas"
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -76,72 +76,62 @@ El servicio estará disponible en: `http://localhost:8082`
 | GET | `/reservas/cancha/{canchaId}` | Filtra reservas por cancha |
 | POST | `/reservas` | Crea una nueva reserva |
 
-## Ejemplos con Postman/cURL
+## Tutorial Rapido (Simple)
 
-### Listar canchas
-```bash
-curl http://localhost:8081/canchas
+### 1. Levantar servicios
+
+Terminal 1 (canchas):
+```powershell
+cd "C:\Users\Remmy\Desktop\CanchasLosCondores\demo"
+.\mvnw.cmd spring-boot:run
 ```
 
-### Crear cancha
-```bash
-curl -X POST http://localhost:8081/canchas \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Cancha B","tipo":"Fútbol","precioPorHora":15000}'
+Terminal 2 (reservas):
+```powershell
+cd "C:\Users\Remmy\Desktop\CanchasLosCondores\reservas"
+.\mvnw.cmd spring-boot:run
 ```
 
-### Listar reservas
-```bash
-curl http://localhost:8082/reservas
-```
+### 2. Crear una reserva en Postman
 
-### Crear reserva
-```bash
-curl -X POST http://localhost:8082/reservas \
-  -H "Content-Type: application/json" \
-  -d '{"canchaId":1,"nombreCliente":"Ana","fecha":"2025-06-20","horaInicio":"10:00","horaFin":"11:00"}'
-```
+1. Metodo: `POST`
+2. URL: `http://localhost:8082/reservas`
+3. Body: `raw` -> `JSON`
+4. Header: `Content-Type: application/json`
+5. JSON:
 
-### Filtrar reservas por cancha
-```bash
-curl http://localhost:8082/reservas/cancha/1
-```
-
-## Modelos de Datos
-
-### Cancha
 ```json
 {
-  "id": 1,
-  "nombre": "Cancha A",
-  "tipo": "Fútbol",
-  "estado": "Disponible",
-  "precioPorHora": 12000
-}
-```
-
-### Reserva
-```json
-{
-  "id": 1,
   "canchaId": 1,
-  "nombreCliente": "Juan Pérez",
-  "fecha": "2025-06-18",
-  "horaInicio": "09:00",
-  "horaFin": "10:00"
+  "nombreCliente": "Ana",
+  "fecha": "2025-06-20",
+  "horaInicio": "10:00",
+  "horaFin": "11:00"
 }
 ```
 
-## Datos de Prueba
+### 3. Verificar que se guardo en MySQL (XAMPP)
 
-Cada servicio incluye datos de prueba precargados:
+```sql
+USE los_condores;
+SELECT id, cancha_id, cliente, fecha, hora_inicio, hora_fin
+FROM reservas
+ORDER BY id DESC
+LIMIT 10;
+```
 
-**Canchas:**
-- Cancha A (Fútbol, $12.000/hora)
-- Cancha B (Tenis, $8.000/hora)
-- Cancha C (Básquetbol, $10.000/hora - en mantenimiento)
+## Nota Importante sobre Horarios
 
-**Reservas:**
-- Juan Pérez - Cancha 1 - 2025-06-18
-- María López - Cancha 2 - 2025-06-19
-- Carlos Ruiz - Cancha 1 - 2025-06-20
+La tabla `reservas` ahora usa solo:
+
+1. `hora_inicio`
+2. `hora_fin`
+
+La columna antigua `horario` fue eliminada para evitar errores 500 y mantener un unico formato de datos.
+
+## Endpoints Utiles
+
+- GET `http://localhost:8081/canchas`
+- GET `http://localhost:8082/reservas`
+- GET `http://localhost:8082/reservas/cancha/{canchaId}`
+- POST `http://localhost:8082/reservas`
